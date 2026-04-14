@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Full bleed background for maskable icon (safe zone is center 80%) -->
+  <rect width="512" height="512" fill="#1A0F0A"/>
+
+  <!-- Steam -->
+  <path d="M206 188 Q220 162 206 136" stroke="#C8A878" stroke-width="10" fill="none" stroke-linecap="round"/>
+  <path d="M256 178 Q270 148 256 118" stroke="#C8A878" stroke-width="10" fill="none" stroke-linecap="round"/>
+  <path d="M306 188 Q292 162 306 136" stroke="#C8A878" stroke-width="10" fill="none" stroke-linecap="round"/>
+
+  <!-- Cup -->
+  <path d="M165 225 L192 382 Q194 396 208 396 L304 396 Q318 396 320 382 L347 225 Z" fill="#C8784A"/>
+  <path d="M182 225 L202 342 Q204 354 216 354 L238 354 L210 225 Z" fill="rgba(255,255,255,0.06)"/>
+
+  <!-- Handle -->
+  <path d="M347 260 C410 260 410 350 347 350" stroke="#A05A30" stroke-width="28" fill="none" stroke-linecap="round"/>
+  <path d="M347 260 C400 260 400 350 347 350" stroke="#C8784A" stroke-width="15" fill="none" stroke-linecap="round"/>
+
+  <!-- Saucer -->
+  <ellipse cx="256" cy="410" rx="128" ry="19" fill="#8C4820"/>
+  <ellipse cx="256" cy="408" rx="122" ry="13" fill="#A05A30"/>
+
+  <!-- Coffee -->
+  <ellipse cx="256" cy="227" rx="91" ry="12" fill="#7B3F00"/>
+  <ellipse cx="256" cy="225" rx="85" ry="8" fill="#5C2E00"/>
+</svg>

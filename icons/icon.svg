@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background -->
+  <rect width="512" height="512" rx="110" fill="#1A0F0A"/>
+
+  <!-- Steam lines -->
+  <path d="M194 168 Q210 138 194 108" stroke="#C8A878" stroke-width="12" fill="none" stroke-linecap="round"/>
+  <path d="M256 158 Q272 122 256 86"  stroke="#C8A878" stroke-width="12" fill="none" stroke-linecap="round"/>
+  <path d="M318 168 Q302 138 318 108" stroke="#C8A878" stroke-width="12" fill="none" stroke-linecap="round"/>
+
+  <!-- Cup body -->
+  <path d="M150 210 L180 380 Q182 396 198 396 L314 396 Q330 396 332 380 L362 210 Z" fill="#C8784A"/>
+
+  <!-- Cup sheen -->
+  <path d="M168 210 L190 336 Q192 350 206 350 L230 350 L195 210 Z" fill="rgba(255,255,255,0.07)"/>
+
+  <!-- Handle -->
+  <path d="M362 245 C432 245 432 345 362 345" stroke="#A05A30" stroke-width="32" fill="none" stroke-linecap="round"/>
+  <path d="M362 245 C418 245 418 345 362 345" stroke="#C8784A" stroke-width="18" fill="none" stroke-linecap="round"/>
+
+  <!-- Saucer -->
+  <ellipse cx="256" cy="410" rx="140" ry="22" fill="#8C4820"/>
+  <ellipse cx="256" cy="408" rx="134" ry="16" fill="#A05A30"/>
+
+  <!-- Coffee surface inside cup -->
+  <ellipse cx="256" cy="212" rx="106" ry="14" fill="#7B3F00"/>
+  <ellipse cx="256" cy="210" rx="100" ry="10" fill="#5C2E00"/>
+</svg>

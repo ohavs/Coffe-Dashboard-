@@ -1,0 +1,28 @@
+{
+  "name": "דשבורד קפה",
+  "short_name": "קפה ☕",
+  "description": "ניהול מכונת הקפה — ניקויים, פילטר, מלאי ומתכונים",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0C0805",
+  "theme_color": "#0C0805",
+  "lang": "he",
+  "dir": "rtl",
+  "categories": ["lifestyle", "utilities"],
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": []
+}
