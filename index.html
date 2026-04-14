@@ -3,288 +3,299 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta name="theme-color" content="#0D0805">
+  <meta name="theme-color" id="themeColor" content="#0A0908">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="קפה">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icons/icon.svg">
+  <!-- Prevent flash of wrong theme -->
+  <script>
+    (function(){
+      var s = localStorage.getItem('theme') ||
+        (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', s);
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <title>☕ דשבורד קפה</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="app">
+<div id="app">
 
-    <!-- Header -->
-    <header class="header">
-      <div class="header-content">
-        <div class="header-title" id="pageTitle">בית</div>
+  <!-- ══ HEADER ══ -->
+  <header class="header">
+    <div class="header-content">
+      <div class="header-title" id="pageTitle">בית</div>
+      <div class="header-end">
         <div class="header-date" id="currentDate"></div>
+        <button class="theme-toggle" id="themeToggle" onclick="App.toggleTheme()" aria-label="החלף מצב תצוגה">
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
       </div>
-    </header>
+    </div>
+  </header>
 
-    <!-- Main scrollable area -->
-    <main class="main" id="main">
+  <!-- ══ MAIN ══ -->
+  <main class="main" id="main">
 
-      <!-- ══════════ HOME TAB ══════════ -->
-      <section class="tab-content active" id="tab-home">
-        <div class="hero">
-          <div class="hero-glow"></div>
-          <div class="hero-text">
-            <h1 class="hero-greeting" id="greeting">בוקר טוב</h1>
-            <p class="hero-sub">הנה הסיכום שלך להיום</p>
-          </div>
-          <div class="hero-icon">☕</div>
+    <!-- ═══════════════ HOME ═══════════════ -->
+    <section class="tab-content active" id="tab-home">
+      <div class="hero">
+        <div class="hero-glow"></div>
+        <div class="hero-text">
+          <h1 class="hero-greeting" id="greeting">בוקר טוב</h1>
+          <p class="hero-sub">הנה הסיכום שלך להיום</p>
         </div>
-
-        <div class="stats-grid">
-          <div class="stat-card" data-tab="machine" role="button" tabindex="0">
-            <div class="stat-icon">🧹</div>
-            <div class="stat-body">
-              <div class="stat-value" id="stat-cleaning-days">—</div>
-              <div class="stat-label">ימים לניקוי</div>
-            </div>
-            <span class="stat-dot" id="stat-cleaning-dot"></span>
-          </div>
-          <div class="stat-card" data-tab="machine" role="button" tabindex="0">
-            <div class="stat-icon">💧</div>
-            <div class="stat-body">
-              <div class="stat-value" id="stat-filter-days">—</div>
-              <div class="stat-label">ימים לפילטר</div>
-            </div>
-            <span class="stat-dot" id="stat-filter-dot"></span>
-          </div>
-          <div class="stat-card" data-tab="supply" role="button" tabindex="0">
-            <div class="stat-icon">☕</div>
-            <div class="stat-body">
-              <div class="stat-value" id="stat-bags">—</div>
-              <div class="stat-label">שקיות קפה</div>
-            </div>
-            <span class="stat-dot" id="stat-bags-dot"></span>
-          </div>
-          <div class="stat-card" data-tab="supply" role="button" tabindex="0">
-            <div class="stat-icon">📅</div>
-            <div class="stat-body">
-              <div class="stat-value" id="stat-supply-days">—</div>
-              <div class="stat-label">ימי קפה</div>
-            </div>
-            <span class="stat-dot" id="stat-supply-dot"></span>
-          </div>
-        </div>
-
-        <div class="alerts-container" id="alertsContainer"></div>
-
-        <div class="card">
-          <div class="card-title">פעילות אחרונה</div>
-          <div id="activityList">
-            <div class="empty-state"><span>🌟</span><p>אין פעילות עדיין</p></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ══════════ MACHINE TAB ══════════ -->
-      <section class="tab-content" id="tab-machine">
-
-        <!-- Cleaning -->
-        <div class="card">
-          <div class="card-title"><span class="card-title-icon">🧹</span> ניקוי המכונה</div>
-          <div class="info-row">
-            <div class="info-block">
-              <div class="info-label">ניקוי אחרון</div>
-              <div class="info-value" id="lastCleaningDate">לא נרשם</div>
-              <div class="info-sub" id="lastCleaningAgo"></div>
-            </div>
-            <div class="info-block">
-              <div class="info-label">ניקוי הבא</div>
-              <div class="info-value" id="nextCleaningDate">לא נקבע</div>
-              <div class="info-sub" id="nextCleaningIn"></div>
-            </div>
-          </div>
-          <div class="progress-wrap">
-            <div class="progress-meta">
-              <span>מחזור ניקוי</span><span id="cleaningPct">0%</span>
-            </div>
-            <div class="progress-track"><div class="progress-fill fill-amber" id="cleaningBar" style="width:0%"></div></div>
-          </div>
-          <div class="btn-group">
-            <button class="btn btn-primary" onclick="App.markCleaning()">✓ ניקוי בוצע</button>
-            <button class="btn btn-ghost" onclick="App.showSetNextCleaning()">📅 קבע תאריך</button>
-          </div>
-          <div class="setting-row">
-            <span class="setting-label">מחזור ניקוי (ימים)</span>
-            <div class="stepper">
-              <button onclick="App.changeCleaningCycle(-1)">−</button>
-              <span id="cleaningCycle">14</span>
-              <button onclick="App.changeCleaningCycle(1)">+</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Filter -->
-        <div class="card">
-          <div class="card-title"><span class="card-title-icon">💧</span> פילטר מים</div>
-          <div class="info-row">
-            <div class="info-block">
-              <div class="info-label">הותקן</div>
-              <div class="info-value" id="filterInstalledDate">לא נרשם</div>
-              <div class="info-sub" id="filterInstalledAgo"></div>
-            </div>
-            <div class="info-block">
-              <div class="info-label">החלפה הבאה</div>
-              <div class="info-value" id="filterNextDate">לא נקבע</div>
-              <div class="info-sub" id="filterNextIn"></div>
-            </div>
-          </div>
-          <div class="progress-wrap">
-            <div class="progress-meta">
-              <span>חיי פילטר</span><span id="filterPct">0%</span>
-            </div>
-            <div class="progress-track"><div class="progress-fill fill-blue" id="filterBar" style="width:0%"></div></div>
-          </div>
-          <div class="btn-group">
-            <button class="btn btn-primary" onclick="App.replaceFilter()">🔄 החלף פילטר</button>
-          </div>
-          <div class="setting-row">
-            <span class="setting-label">תוחלת חיים (ימים)</span>
-            <div class="stepper">
-              <button onclick="App.changeFilterLife(-5)">−</button>
-              <span id="filterLifespan">60</span>
-              <button onclick="App.changeFilterLife(5)">+</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- History -->
-        <div class="card">
-          <div class="card-title">היסטוריית מכונה</div>
-          <div id="machineHistory">
-            <div class="empty-state"><span>📋</span><p>אין היסטוריה עדיין</p></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ══════════ SUPPLY TAB ══════════ -->
-      <section class="tab-content" id="tab-supply">
-
-        <div class="card">
-          <div class="card-title"><span class="card-title-icon">☕</span> מלאי קפה</div>
-
-          <div class="big-counter">
-            <button class="counter-btn minus" onclick="App.changeBags(-1)">−</button>
-            <div class="counter-center">
-              <div class="counter-val" id="bagsCount">0</div>
-              <div class="counter-lbl">שקיות</div>
-            </div>
-            <button class="counter-btn plus" onclick="App.changeBags(1)">+</button>
-          </div>
-
-          <div class="supply-stats">
-            <div class="supply-stat">
-              <div class="supply-stat-label">ימים נותרים</div>
-              <div class="supply-stat-value" id="daysRemaining">0</div>
-            </div>
-            <div class="supply-stat-divider"></div>
-            <div class="supply-stat">
-              <div class="supply-stat-label">אזילה משוערת</div>
-              <div class="supply-stat-value" id="estimatedEmpty">—</div>
-            </div>
-          </div>
-
-          <div class="quick-grid">
-            <button class="quick-btn" onclick="App.changeBags(1)">+1</button>
-            <button class="quick-btn" onclick="App.changeBags(3)">+3</button>
-            <button class="quick-btn" onclick="App.changeBags(5)">+5</button>
-            <button class="quick-btn" onclick="App.changeBags(10)">+10</button>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-title">הגדרות</div>
-          <div class="setting-row">
-            <span class="setting-label">גרם בשקית</span>
-            <div class="stepper">
-              <button onclick="App.changeGramsPerBag(-50)">−</button>
-              <span id="gramsPerBag">250</span>
-              <button onclick="App.changeGramsPerBag(50)">+</button>
-            </div>
-          </div>
-          <div class="setting-row">
-            <span class="setting-label">שימוש יומי (גרם)</span>
-            <div class="stepper">
-              <button onclick="App.changeDailyUsage(-5)">−</button>
-              <span id="dailyUsage">30</span>
-              <button onclick="App.changeDailyUsage(5)">+</button>
-            </div>
-          </div>
-          <div class="setting-row last">
-            <span class="setting-label">התראת מלאי נמוך (שקיות)</span>
-            <div class="stepper">
-              <button onclick="App.changeLowStock(-1)">−</button>
-              <span id="lowStockAlert">2</span>
-              <button onclick="App.changeLowStock(1)">+</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ══════════ RECIPES TAB ══════════ -->
-      <section class="tab-content" id="tab-recipes">
-        <div class="card">
-          <div class="card-header-row">
-            <div class="card-title" style="margin-bottom:0">מתכוני קפה</div>
-            <button class="fab-sm" onclick="App.showAddRecipe()">+</button>
-          </div>
-          <div id="recipesList" style="margin-top:16px"></div>
-        </div>
-      </section>
-
-    </main><!-- /main -->
-
-    <!-- Bottom Navigation -->
-    <nav class="bottom-nav">
-      <button class="nav-btn active" data-tab="home">
-        <span class="nav-icon">🏠</span>
-        <span class="nav-lbl">בית</span>
-      </button>
-      <button class="nav-btn" data-tab="machine">
-        <span class="nav-icon">⚙️</span>
-        <span class="nav-lbl">מכונה</span>
-      </button>
-      <button class="nav-btn" data-tab="supply">
-        <span class="nav-icon">☕</span>
-        <span class="nav-lbl">מלאי</span>
-      </button>
-      <button class="nav-btn" data-tab="recipes">
-        <span class="nav-icon">📖</span>
-        <span class="nav-lbl">מתכונים</span>
-      </button>
-    </nav>
-
-  </div><!-- /app -->
-
-  <!-- ══════════ MODAL (bottom sheet) ══════════ -->
-  <div class="overlay" id="modalOverlay" onclick="App.closeModal()">
-    <div class="sheet" id="modal" onclick="event.stopPropagation()">
-      <div class="sheet-handle"></div>
-      <div class="sheet-header">
-        <span class="sheet-title" id="modalTitle"></span>
-        <button class="sheet-close" onclick="App.closeModal()">✕</button>
+        <div class="hero-icon">☕</div>
       </div>
-      <div class="sheet-body" id="modalBody"></div>
+
+      <div class="stats-grid">
+        <div class="stat-card" data-tab="machine">
+          <div class="stat-icon">🧹</div>
+          <div class="stat-body">
+            <div class="stat-value" id="stat-cleaning-days">—</div>
+            <div class="stat-label">ימים לניקוי</div>
+          </div>
+          <span class="stat-dot" id="stat-cleaning-dot"></span>
+        </div>
+        <div class="stat-card" data-tab="machine">
+          <div class="stat-icon">💧</div>
+          <div class="stat-body">
+            <div class="stat-value" id="stat-filter-days">—</div>
+            <div class="stat-label">ימים לפילטר</div>
+          </div>
+          <span class="stat-dot" id="stat-filter-dot"></span>
+        </div>
+        <div class="stat-card" data-tab="supply">
+          <div class="stat-icon">☕</div>
+          <div class="stat-body">
+            <div class="stat-value" id="stat-bags">—</div>
+            <div class="stat-label">שקיות קפה</div>
+          </div>
+          <span class="stat-dot" id="stat-bags-dot"></span>
+        </div>
+        <div class="stat-card" data-tab="supply">
+          <div class="stat-icon">📅</div>
+          <div class="stat-body">
+            <div class="stat-value" id="stat-supply-days">—</div>
+            <div class="stat-label">ימי קפה</div>
+          </div>
+          <span class="stat-dot" id="stat-supply-dot"></span>
+        </div>
+      </div>
+
+      <div class="alerts-container" id="alertsContainer"></div>
+
+      <div class="card">
+        <div class="card-title">פעילות אחרונה</div>
+        <div id="activityList">
+          <div class="empty-state"><span>🌟</span><p>אין פעילות עדיין</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ MACHINE ═══════════════ -->
+    <section class="tab-content" id="tab-machine">
+
+      <div class="card">
+        <div class="card-title"><span class="card-title-icon">🧹</span> ניקוי המכונה</div>
+        <div class="info-row">
+          <div class="info-block">
+            <div class="info-label">ניקוי אחרון</div>
+            <div class="info-value" id="lastCleaningDate">לא נרשם</div>
+            <div class="info-sub" id="lastCleaningAgo"></div>
+          </div>
+          <div class="info-block">
+            <div class="info-label">ניקוי הבא</div>
+            <div class="info-value" id="nextCleaningDate">לא נקבע</div>
+            <div class="info-sub" id="nextCleaningIn"></div>
+          </div>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-meta"><span>מחזור ניקוי</span><span id="cleaningPct">0%</span></div>
+          <div class="progress-track"><div class="progress-fill fill-amber" id="cleaningBar" style="width:0%"></div></div>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="App.markCleaning()">✓ ניקוי בוצע</button>
+          <button class="btn btn-ghost" onclick="App.showSetNextCleaning()">📅 קבע תאריך</button>
+        </div>
+        <div class="setting-row last">
+          <span class="setting-label">מחזור ניקוי (ימים)</span>
+          <div class="stepper">
+            <button onclick="App.changeCleaningCycle(-1)">−</button>
+            <span id="cleaningCycle">14</span>
+            <button onclick="App.changeCleaningCycle(1)">+</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="card-title-icon">💧</span> פילטר מים</div>
+        <div class="info-row">
+          <div class="info-block">
+            <div class="info-label">הותקן</div>
+            <div class="info-value" id="filterInstalledDate">לא נרשם</div>
+            <div class="info-sub" id="filterInstalledAgo"></div>
+          </div>
+          <div class="info-block">
+            <div class="info-label">החלפה הבאה</div>
+            <div class="info-value" id="filterNextDate">לא נקבע</div>
+            <div class="info-sub" id="filterNextIn"></div>
+          </div>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-meta"><span>חיי פילטר</span><span id="filterPct">0%</span></div>
+          <div class="progress-track"><div class="progress-fill fill-blue" id="filterBar" style="width:0%"></div></div>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="App.replaceFilter()">🔄 החלף פילטר</button>
+        </div>
+        <div class="setting-row last">
+          <span class="setting-label">תוחלת חיים (ימים)</span>
+          <div class="stepper">
+            <button onclick="App.changeFilterLife(-5)">−</button>
+            <span id="filterLifespan">60</span>
+            <button onclick="App.changeFilterLife(5)">+</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header-row">
+          <div class="card-title" style="margin-bottom:0">היסטוריה</div>
+          <button class="see-all-btn" onclick="App.showFullMachineHistory()">ראה הכל</button>
+        </div>
+        <div id="machineHistory" style="margin-top:14px">
+          <div class="empty-state"><span>📋</span><p>אין היסטוריה עדיין</p></div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ═══════════════ SUPPLY ═══════════════ -->
+    <section class="tab-content" id="tab-supply">
+
+      <div class="card">
+        <div class="card-title"><span class="card-title-icon">☕</span> מלאי קפה</div>
+        <div id="activeBagBanner"></div>
+
+        <div class="big-counter">
+          <button class="counter-btn minus" onclick="App.changeBags(-1)">−</button>
+          <div class="counter-center">
+            <div class="counter-val" id="bagsCount">0</div>
+            <div class="counter-lbl">שקיות</div>
+          </div>
+          <button class="counter-btn plus" onclick="App.changeBags(1)">+</button>
+        </div>
+
+        <div class="supply-stats">
+          <div class="supply-stat">
+            <div class="supply-stat-label">ימים נותרים</div>
+            <div class="supply-stat-value" id="daysRemaining">0</div>
+          </div>
+          <div class="supply-stat-divider"></div>
+          <div class="supply-stat">
+            <div class="supply-stat-label">אזילה משוערת</div>
+            <div class="supply-stat-value" id="estimatedEmpty">—</div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="App.showLogPurchase()">
+          + תיעוד קנייה
+        </button>
+      </div>
+
+      <div class="card">
+        <div class="card-header-row">
+          <div class="card-title" style="margin-bottom:0"><span class="card-title-icon">📦</span> קטלוג שקיות</div>
+          <button class="fab-sm" onclick="App.showAddBagType()">+</button>
+        </div>
+        <div id="bagCatalogList" style="margin-top:14px">
+          <div class="empty-state"><span>📦</span><p>אין שקיות שמורות עדיין</p></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">הגדרות צריכה</div>
+        <div class="setting-row">
+          <span class="setting-label">שימוש יומי (גרם)</span>
+          <div class="stepper">
+            <button onclick="App.changeDailyUsage(-5)">−</button>
+            <span id="dailyUsage">30</span>
+            <button onclick="App.changeDailyUsage(5)">+</button>
+          </div>
+        </div>
+        <div class="setting-row last">
+          <span class="setting-label">התראת מלאי נמוך</span>
+          <div class="stepper">
+            <button onclick="App.changeLowStock(-1)">−</button>
+            <span id="lowStockAlert">2</span>
+            <button onclick="App.changeLowStock(1)">+</button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ═══════════════ RECIPES ═══════════════ -->
+    <section class="tab-content" id="tab-recipes">
+      <div class="card">
+        <div class="card-header-row">
+          <div class="card-title" style="margin-bottom:0">מתכוני קפה</div>
+          <button class="fab-sm" onclick="App.showAddRecipe()">+</button>
+        </div>
+        <div id="recipesList" style="margin-top:16px"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ══ BOTTOM NAV ══ -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-tab="home">
+      <span class="nav-icon">🏠</span><span class="nav-lbl">בית</span>
+    </button>
+    <button class="nav-btn" data-tab="machine">
+      <span class="nav-icon">⚙️</span><span class="nav-lbl">מכונה</span>
+    </button>
+    <button class="nav-btn" data-tab="supply">
+      <span class="nav-icon">☕</span><span class="nav-lbl">מלאי</span>
+    </button>
+    <button class="nav-btn" data-tab="recipes">
+      <span class="nav-icon">📖</span><span class="nav-lbl">מתכונים</span>
+    </button>
+  </nav>
+
+</div><!-- /app -->
+
+<!-- ══ MODAL SHEET ══ -->
+<div class="overlay" id="modalOverlay" onclick="App.closeModal()">
+  <div class="sheet" id="modal" onclick="event.stopPropagation()">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <span class="sheet-title" id="modalTitle"></span>
+      <button class="sheet-close" onclick="App.closeModal()">✕</button>
     </div>
+    <div class="sheet-body" id="modalBody"></div>
   </div>
+</div>
 
-  <!-- ══════════ RECIPE DETAIL SHEET ══════════ -->
-  <div class="overlay" id="recipeOverlay" onclick="App.closeRecipe()">
-    <div class="sheet recipe-sheet" id="recipeSheet" onclick="event.stopPropagation()">
-      <div class="sheet-handle"></div>
-      <div class="sheet-body" id="recipeContent"></div>
-    </div>
+<!-- ══ RECIPE DETAIL SHEET ══ -->
+<div class="overlay" id="recipeOverlay" onclick="App.closeRecipe()">
+  <div class="sheet recipe-sheet" id="recipeSheet" onclick="event.stopPropagation()">
+    <div class="sheet-handle"></div>
+    <div class="sheet-body" id="recipeContent"></div>
   </div>
+</div>
 
-  <!-- Toast -->
-  <div class="toast" id="toast"></div>
+<!-- Toast -->
+<div class="toast" id="toast"></div>
 
-  <script src="app.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
