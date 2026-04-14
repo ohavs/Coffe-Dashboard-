@@ -19,6 +19,10 @@ const App = (() => {
     dailyUsage:    30,
     lowStockAlert: 2,
 
+    bagCatalog:    [],   // [{ name, grams, rating, notes }]
+    activeBagId:   null,
+    purchases:     [],   // [{ date, bagId, quantity }]
+
     recipes: null,   // loaded via getDefaultRecipes()
     history: [],     // [{ date, type, icon, text }]
   };
@@ -28,7 +32,7 @@ const App = (() => {
   /* ───────── Persistence ───────── */
   function load() {
     try {
-      const raw = localStorage.getItem('coffeeApp_v2');
+      const raw = localStorage.getItem('coffeeApp_v3');
       state = raw ? { ...DEFAULTS, ...JSON.parse(raw) } : { ...DEFAULTS };
     } catch (_) {
       state = { ...DEFAULTS };
@@ -39,7 +43,7 @@ const App = (() => {
   }
 
   function save() {
-    localStorage.setItem('coffeeApp_v2', JSON.stringify(state));
+    localStorage.setItem('coffeeApp_v3', JSON.stringify(state));
   }
 
   /* ───────── Date utilities ───────── */
@@ -93,6 +97,26 @@ const App = (() => {
     if (h < 17) return 'צהריים טובים';
     if (h < 20) return 'ערב טוב';
     return 'לילה טוב';
+  }
+
+  /* ───────── Theme ───────── */
+  function initTheme() {
+    const theme = localStorage.getItem('theme') ||
+      (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    applyTheme(theme);
+  }
+
+  function toggleTheme() {
+    const current = localStorage.getItem('theme') || 'dark';
+    const next = current === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+  }
+
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+    const color = theme === 'dark' ? '#0A0908' : '#F5F2EE';
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', color);
   }
 
   /* ───────── Generic DOM helpers ───────── */
@@ -269,6 +293,27 @@ const App = (() => {
     ).join('');
   }
 
+  function showFullMachineHistory() {
+    const events = state.history
+      .filter(h => h.type === 'cleaning' || h.type === 'filter')
+      .reverse();
+
+    if (!events.length) {
+      showToast('אין היסטוריה');
+      return;
+    }
+
+    const html = events.map(e =>
+      `<div class="history-item">
+        <div class="history-dot"></div>
+        <div class="history-text">${e.text}</div>
+        <div class="history-date">${fmtShortDate(e.date)}</div>
+      </div>`
+    ).join('');
+
+    showModal('היסטוריה מלאה', html);
+  }
+
   /* ───────── Supply tab ───────── */
   function updateSupply() {
     setText('bagsCount',   String(state.bags));
@@ -280,6 +325,240 @@ const App = (() => {
     const daysLeft = state.dailyUsage > 0 ? Math.floor(totalG / state.dailyUsage) : 0;
     setText('daysRemaining', String(daysLeft));
     setText('estimatedEmpty', daysLeft > 0 ? fmtShortDate(addDays(todayStr(), daysLeft)) : 'אין מלאי');
+
+    updateActiveBagBanner();
+    renderBagCatalog();
+  }
+
+  function getActiveBag() {
+    if (state.activeBagId === null) return null;
+    return state.bagCatalog[state.activeBagId] || null;
+  }
+
+  function updateActiveBagBanner() {
+    const banner = el('activeBagBanner');
+    const active = getActiveBag();
+    if (!active) {
+      banner.innerHTML = '<div class="empty-state"><span>📦</span><p>אין שקיה פעילה</p></div>';
+      return;
+    }
+    const stars = '⭐'.repeat(Math.round(active.rating || 0));
+    banner.innerHTML = `
+      <div class="active-bag-banner">
+        <div class="active-bag-info">
+          <div class="active-bag-name">${active.name}</div>
+          <div class="active-bag-grams">${active.grams}g</div>
+          <div class="active-bag-rating">${stars || '—'}</div>
+        </div>
+        <button class="active-bag-btn" onclick="App.showLogPurchase()">רכישה חדשה</button>
+      </div>
+    `;
+  }
+
+  function renderBagCatalog() {
+    const list = el('bagCatalogList');
+    if (!state.bagCatalog.length) {
+      list.innerHTML = '<div class="empty-state"><span>📦</span><p>אין שקיות שמורות עדיין</p></div>';
+      return;
+    }
+    list.innerHTML = state.bagCatalog.map((bag, i) => {
+      const active = state.activeBagId === i ? 'selected' : '';
+      const stars = '⭐'.repeat(Math.round(bag.rating || 0));
+      return `
+        <div class="bag-item ${active}">
+          <div class="bag-info">
+            <div class="bag-name">${bag.name}</div>
+            <div class="bag-grams">${bag.grams}g</div>
+            ${stars ? `<div class="bag-rating">${stars}</div>` : ''}
+            ${bag.notes ? `<div class="bag-notes">${bag.notes}</div>` : ''}
+          </div>
+          <div class="bag-actions">
+            <button class="btn-mini" onclick="App.selectBag(${i})">בחר</button>
+            <button class="btn-mini edit" onclick="App.editBagType(${i})">✎</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function selectBag(idx) {
+    state.activeBagId = idx;
+    save(); updateSupply(); updateHome();
+    showToast(`✓ ${state.bagCatalog[idx].name} נבחרה`);
+  }
+
+  function showBagDetail(idx) {
+    const bag = state.bagCatalog[idx];
+    if (!bag) return;
+    showModal(`${bag.name}`,
+      `<div style="padding: 8px 0">
+        <div class="info-row">
+          <div class="info-block">
+            <div class="info-label">וקטם</div>
+            <div class="info-value">${bag.grams}g</div>
+          </div>
+          <div class="info-block">
+            <div class="info-label">דירוג</div>
+            <div class="info-value">${'⭐'.repeat(Math.round(bag.rating || 0)) || '—'}</div>
+          </div>
+        </div>
+        ${bag.notes ? `<div style="margin-top:16px"><strong>הערות:</strong><p>${bag.notes}</p></div>` : ''}
+        <div style="margin-top:16px; display:flex; gap:8px">
+          <button class="btn btn-primary" style="flex:1" onclick="App.selectBag(${idx})">בחר</button>
+          <button class="btn btn-ghost" style="flex:1" onclick="App.editBagType(${idx})">ערוך</button>
+        </div>
+      </div>`
+    );
+  }
+
+  function editBagType(idx) {
+    const bag = state.bagCatalog[idx];
+    if (!bag) return;
+    closeModal();
+    showModal(`ערוך: ${bag.name}`,
+      `<div class="form-group">
+        <label class="form-label">שם</label>
+        <input type="text" class="form-input" id="eb-name" value="${bag.name}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">גרמים לשקיה</label>
+        <input type="number" class="form-input" id="eb-grams" value="${bag.grams}" min="50" max="1000">
+      </div>
+      <div class="form-group">
+        <label class="form-label">דירוג (0-5)</label>
+        <input type="number" class="form-input" id="eb-rating" value="${bag.rating || 0}" min="0" max="5" step="0.5">
+      </div>
+      <div class="form-group">
+        <label class="form-label">הערות</label>
+        <textarea class="form-textarea" id="eb-notes" placeholder="אופן הצריבה, טעם, וכו...">${bag.notes || ''}</textarea>
+      </div>
+      <button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="App.updateBagType(${idx})">שמור</button>`
+    );
+  }
+
+  function updateBagType(idx) {
+    const name = el('eb-name')?.value.trim();
+    if (!name) { showToast('⚠️ יש להזין שם'); return; }
+
+    state.bagCatalog[idx] = {
+      name,
+      grams: parseInt(el('eb-grams')?.value) || 250,
+      rating: parseFloat(el('eb-rating')?.value) || 0,
+      notes: el('eb-notes')?.value.trim() || ''
+    };
+    save(); closeModal(); updateSupply();
+    showToast('✓ שקיה עודכנה');
+  }
+
+  function showAddBagType() {
+    showModal('שקיה חדשה',
+      `<div class="form-group">
+        <label class="form-label">שם *</label>
+        <input type="text" class="form-input" id="ab-name" placeholder="למשל: ברזילאי">
+      </div>
+      <div class="form-group">
+        <label class="form-label">גרמים לשקיה</label>
+        <input type="number" class="form-input" id="ab-grams" value="250" min="50" max="1000">
+      </div>
+      <div class="form-group">
+        <label class="form-label">דירוג (0-5)</label>
+        <input type="number" class="form-input" id="ab-rating" value="3" min="0" max="5" step="0.5">
+      </div>
+      <div class="form-group">
+        <label class="form-label">הערות</label>
+        <textarea class="form-textarea" id="ab-notes" placeholder="אופן הצריבה, טעם, וכו..."></textarea>
+      </div>
+      <button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="App.addBagType()">הוסף</button>`
+    );
+  }
+
+  function addBagType() {
+    const name = el('ab-name')?.value.trim();
+    if (!name) { showToast('⚠️ יש להזין שם'); return; }
+
+    state.bagCatalog.push({
+      name,
+      grams: parseInt(el('ab-grams')?.value) || 250,
+      rating: parseFloat(el('ab-rating')?.value) || 0,
+      notes: el('ab-notes')?.value.trim() || ''
+    });
+
+    if (state.activeBagId === null) {
+      state.activeBagId = 0;
+    }
+    save(); closeModal(); updateSupply();
+    showToast('✓ שקיה חדשה נוספה');
+  }
+
+  function showLogPurchase() {
+    if (state.bagCatalog.length === 0) {
+      showToast('⚠️ הוסף שקיה קודם');
+      return;
+    }
+
+    const bagOptions = state.bagCatalog.map((bag, i) =>
+      `<div class="bag-select-item" onclick="App.selectBagForPurchase(${i})">
+        <input type="radio" name="purchase-bag" value="${i}" ${state.activeBagId === i ? 'checked' : ''}>
+        <div class="bag-select-info">
+          <div class="bag-select-name">${bag.name}</div>
+          <div class="bag-select-grams">${bag.grams}g</div>
+        </div>
+      </div>`
+    ).join('');
+
+    showModal('תיעוד קנייה',
+      `<div class="form-group">
+        <label class="form-label">בחר שקיה</label>
+        <div style="display:flex;flex-direction:column;gap:8px">${bagOptions}</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">כמות שקיות</label>
+        <div class="stepper">
+          <button onclick="App.changeQty(-1)">−</button>
+          <span id="purchase-qty">1</span>
+          <button onclick="App.changeQty(1)">+</button>
+        </div>
+      </div>
+      <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="App.confirmPurchase()">אשר קנייה</button>`
+    );
+  }
+
+  let _purchaseQty = 1;
+
+  function selectBagForPurchase(idx) {
+    const radios = document.querySelectorAll('input[name="purchase-bag"]');
+    radios.forEach(r => r.checked = false);
+    document.querySelector(`input[name="purchase-bag"][value="${idx}"]`).checked = true;
+  }
+
+  function changeQty(delta) {
+    _purchaseQty = Math.max(1, _purchaseQty + delta);
+    setText('purchase-qty', _purchaseQty);
+  }
+
+  function confirmPurchase() {
+    const selected = document.querySelector('input[name="purchase-bag"]:checked')?.value;
+    if (selected === undefined) {
+      showToast('⚠️ בחר שקיה');
+      return;
+    }
+
+    const bagIdx = parseInt(selected);
+    const bag = state.bagCatalog[bagIdx];
+    const qty = _purchaseQty;
+
+    state.bags += qty;
+    state.purchases.push({ date: todayStr(), bagId: bagIdx, quantity: qty });
+    state.activeBagId = bagIdx;
+    addHistory({
+      date: todayStr(),
+      type: 'supply',
+      icon: '📦',
+      text: `קנוי ${qty} שקית${qty > 1 ? 'ות' : ''} ${bag.name}`
+    });
+
+    save(); closeModal(); updateSupply(); updateHome();
+    showToast(`✅ קנוי ${qty} שקית${qty > 1 ? 'ות' : ''} ${bag.name}`);
   }
 
   /* ───────── Recipes tab ───────── */
@@ -371,10 +650,12 @@ const App = (() => {
     state.gramsPerBag = Math.max(50, Math.min(2000, state.gramsPerBag + delta));
     save(); updateSupply();
   }
+
   function changeDailyUsage(delta) {
     state.dailyUsage = Math.max(1, Math.min(500, state.dailyUsage + delta));
     save(); updateSupply();
   }
+
   function changeLowStock(delta) {
     state.lowStockAlert = Math.max(0, Math.min(20, state.lowStockAlert + delta));
     save(); setText('lowStockAlert', state.lowStockAlert); updateHome();
@@ -641,9 +922,14 @@ const App = (() => {
 
   /* ───────── Init ───────── */
   function init() {
+    initTheme();
     load();
     updateHeader();
     updateHome();
+
+    // Theme toggle
+    const themeBtn = el('themeToggle');
+    if (themeBtn) themeBtn.addEventListener('click', toggleTheme);
 
     // Nav clicks
     document.querySelectorAll('.nav-btn').forEach(btn =>
@@ -666,13 +952,16 @@ const App = (() => {
 
   /* ── Public API ── */
   return {
-    init,
+    init, toggleTheme,
     // Machine
     markCleaning, replaceFilter,
     changeCleaningCycle, changeFilterLife,
     showSetNextCleaning, setNextCleaning,
+    showFullMachineHistory,
     // Supply
     changeBags, changeGramsPerBag, changeDailyUsage, changeLowStock,
+    selectBag, editBagType, updateBagType, showAddBagType, addBagType,
+    showBagDetail, showLogPurchase, selectBagForPurchase, changeQty, confirmPurchase,
     // Recipes
     showRecipe, closeRecipe, deleteRecipe, showAddRecipe, addRecipe,
     // UI
